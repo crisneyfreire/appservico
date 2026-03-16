@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Painel de Serviços - APP de Serviço</title>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    
+    <!-- Config Firebase -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4ecdc4">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #2a2a40;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --accent: #4ecdc4;
+            --secondary: #ff6b6b;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --success: #4CAF50;
+            --info: #2196f3;
+            --border: #404040;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(78, 205, 196, 0.3);
+            box-shadow: 0 0 30px rgba(78, 205, 196, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header h1 {
+            font-size: clamp(20px, 3vw, 28px);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-shadow: 0 0 10px var(--accent);
+        }
+
+        .empresa-selector {
+            background: var(--bg-secondary);
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 1px solid var(--accent);
+            min-width: 300px;
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 30px;
+            font-size: 13px;
+        }
+
+        /* Filtros */
+        .filters-bar {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .filter-btn {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #404040;
+            border-radius: 20px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+
+        .filter-btn.active {
+            background: var(--accent);
+            color: black;
+            border-color: var(--accent);
+        }
+
+        .filter-btn:hover {
+            border-color: var(--accent);
+        }
+
+        .search-box {
+            padding: 10px 15px;
+            background: var(--bg-secondary);
+            border: 1px solid #404040;
+            border-radius: 20px;
+            color: white;
+            min-width: 250px;
+        }
+
+        /* Botões */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: black;
+        }
+
+        .btn-primary:hover {
+            background: #45b7aa;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-outline:hover {
+            background: var(--accent);
+            color: black;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        /* Cards de OS */
+        .os-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .os-card {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 20px;
+            border-left: 4px solid var(--accent);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .os-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(78, 205, 196, 0.3);
+        }
+
+        .os-card.nova {
+            border-left-color: #2196F3;
+            background: linear-gradient(45deg, var(--bg-card), #1a2a3a);
+        }
+
+        .os-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .os-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .os-id {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .os-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .os-info {
+            margin: 10px 0;
+            padding: 10px 0;
+            border-top: 1px solid #404040;
+            border-bottom: 1px solid #404040;
+        }
+
+        .info-row {
+            display: flex;
+            margin: 5px 0;
+            font-size: 13px;
+        }
+
+        .info-label {
+            width: 100px;
+            color: var(--text-secondary);
+        }
+
+        .info-value {
+            flex: 1;
+        }
+
+        .os-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 700px;
+            width: 90%;
+            border-left: 5px solid var(--accent);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: var(--accent);
+            font-size: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid #404040;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .timeline {
+            margin: 20px 0;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .timeline-item {
+            padding: 10px;
+            border-left: 2px solid var(--accent);
+            margin-bottom: 10px;
+            font-size: 12px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .timeline-date {
+            color: var(--text-secondary);
+            font-size: 10px;
+            margin-bottom: 2px;
+        }
+
+        .timeline-author {
+            color: var(--accent);
+            font-size: 10px;
+            margin-top: 2px;
+        }
+
+        .attachment-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .attachment-item {
+            padding: 5px 10px;
+            background: var(--bg-secondary);
+            border-radius: 5px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--accent);
+        }
+
+        .loading-spinner {
+            border: 3px solid rgba(78, 205, 196, 0.1);
+            border-top: 3px solid var(--accent);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--secondary);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+        }
+
+        .w-100 { width: 100%; }
+        .flex { display: flex; gap: 10px; }
+        .mt-20 { margin-top: 20px; }
+        .mb-10 { margin-bottom: 10px; }
+        .text-center { text-align: center; }
+        .position-relative { position: relative; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div>
+                <h1><i class="fas fa-tools"></i> PAINEL DE SERVIÇOS</h1>
+                <div style="font-size: 12px; color: var(--text-secondary);">Gestão de ordens de serviço</div>
+            </div>
+            <div class="status-bar">
+                <select id="selectEmpresa" class="empresa-selector" onchange="mudarEmpresa()">
+                    <option value="">Selecione uma empresa...</option>
+                </select>
+                <div class="status-item" id="firebaseStatus">🔄 Conectando...</div>
+                <div class="status-item position-relative" id="novasOSAlert" style="display: none;">
+                    <i class="fas fa-bell"></i> Novas OS
+                    <span class="alert-badge" id="novasOSCount">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILTROS -->
+        <div class="filters-bar">
+            <div class="filter-group" id="filtrosStatus">
+                <button class="filter-btn active" onclick="filtrarStatus('todas', this)">Todas</button>
+                <button class="filter-btn" onclick="filtrarStatus('nova', this)">🆕 Nova</button>
+                <button class="filter-btn" onclick="filtrarStatus('em_analise', this)">🔍 Em Análise</button>
+                <button class="filter-btn" onclick="filtrarStatus('agendada', this)">📅 Agendada</button>
+                <button class="filter-btn" onclick="filtrarStatus('em_execucao', this)">⚡ Em Execução</button>
+                <button class="filter-btn" onclick="filtrarStatus('aguardando_confirmacao', this)">⏳ Aguardando</button>
+                <button class="filter-btn" onclick="filtrarStatus('concluida', this)">✅ Concluída</button>
+                <button class="filter-btn" onclick="filtrarStatus('cancelada', this)">❌ Cancelada</button>
+            </div>
+            <div>
+                <input type="text" class="search-box" id="buscarOS" placeholder="🔍 Buscar por título, cliente..." onkeyup="filtrarOS()">
+            </div>
+        </div>
+
+        <!-- LISTA DE OS -->
+        <div id="osContainer">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                Carregando ordens de serviço...
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL OS -->
+    <div id="modalOS" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-clipboard-list"></i> <span id="modalTitulo">Detalhes da OS</span></h2>
+                <button class="modal-close" onclick="fecharModalOS()">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="osId">
+                <input type="hidden" id="osEmpresaId">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="osStatus" class="form-control" onchange="salvarStatus()">
+                            <option value="nova">🆕 Nova</option>
+                            <option value="em_analise">🔍 Em Análise</option>
+                            <option value="agendada">📅 Agendada</option>
+                            <option value="em_execucao">⚡ Em Execução</option>
+                            <option value="aguardando_confirmacao">⏳ Aguardando Confirmação</option>
+                            <option value="concluida">✅ Concluída</option>
+                            <option value="cancelada">❌ Cancelada</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Prioridade</label>
+                        <select id="osPrioridade" class="form-control" disabled>
+                            <option value="baixa">📉 Baixa</option>
+                            <option value="media">📊 Média</option>
+                            <option value="alta">📈 Alta</option>
+                            <option value="urgente">⚠️ Urgente</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Título</label>
+                    <input type="text" id="osTitulo" class="form-control" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Descrição</label>
+                    <textarea id="osDescricao" class="form-control" rows="3" readonly></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Cliente</label>
+                        <input type="text" id="osCliente" class="form-control" readonly>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Técnico</label>
+                        <select id="osTecnico" class="form-control" onchange="atribuirTecnico()">
+                            <option value="">Selecione...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Agendado para</label>
+                        <input type="datetime-local" id="osAgendado" class="form-control" onchange="agendarServico()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Concluído em</label>
+                        <input type="text" id="osConcluido" class="form-control" readonly>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Observação Técnica</label>
+                    <textarea id="osObservacao" class="form-control" rows="2" placeholder="Adicionar observação..." onchange="salvarObservacao()"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Anexos</label>
+                    <div id="anexosLista" class="attachment-list">
+                        <div class="text-center w-100">Nenhum anexo</div>
+                    </div>
+                </div>
+
+                <h4 style="margin: 15px 0; color: var(--accent);">📋 Histórico</h4>
+                <div id="timeline" class="timeline">
+                    <div class="loading">Carregando...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // VARIÁVEIS GLOBAIS
+        // ============================================
+        let empresaAtual = null;
+        let empresas = [];
+        let ordensServico = [];
+        let ordensFiltradas = [];
+        let tecnicos = [];
+        let clientes = [];
+        let filtroAtivo = 'todas';
+        let novasOS = [];
+
+        // ============================================
+        // INICIALIZAÇÃO
+        // ============================================
+        window.onload = function() {
+            document.getElementById('firebaseStatus').innerHTML = '🟢 Conectado';
+            carregarEmpresas();
+            
+            // Registrar Service Worker para PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(reg => console.log('Service Worker registrado'))
+                    .catch(err => console.log('Erro no Service Worker:', err));
+            }
+        };
+
+        // ============================================
+        // CARREGAR DADOS
+        // ============================================
+        function carregarEmpresas() {
+            db.collection('empresas').where('status', '==', 'ativo').get().then(snapshot => {
+                const select = document.getElementById('selectEmpresa');
+                empresas = [];
+                
+                select.innerHTML = '<option value="">Selecione uma empresa...</option>';
+                
+                snapshot.forEach(doc => {
+                    const emp = { id: doc.id, ...doc.data() };
+                    empresas.push(emp);
+                    select.innerHTML += `<option value="${emp.id}">${emp.nome}</option>`;
+                });
+            });
+        }
+
+        function mudarEmpresa() {
+            const empresaId = document.getElementById('selectEmpresa').value;
+            if (!empresaId) {
+                empresaAtual = null;
+                document.getElementById('osContainer').innerHTML = '<div style="text-align: center; padding: 40px;">👆 Selecione uma empresa para começar</div>';
+                return;
+            }
+
+            empresaAtual = empresas.find(e => e.id === empresaId);
+            carregarOS();
+            carregarTecnicos();
+            carregarClientes();
+        }
+
+        function carregarOS() {
+            if (!empresaAtual) return;
+
+            db.collection('ordens_servico')
+                .where('empresaId', '==', empresaAtual.id)
+                .orderBy('criadoEm', 'desc')
+                .onSnapshot(snapshot => {
+                    ordensServico = [];
+                    novasOS = [];
+                    
+                    snapshot.forEach(doc => {
+                        const os = { id: doc.id, ...doc.data() };
+                        ordensServico.push(os);
+                        
+                        // Destacar novas OS (criadas nos últimos 5 minutos)
+                        const criadoEm = new Date(os.criadoEm).getTime();
+                        const agora = new Date().getTime();
+                        const cincoMinutos = 5 * 60 * 1000;
+                        
+                        if (os.status === 'nova' && (agora - criadoEm) < cincoMinutos) {
+                            novasOS.push(os);
+                        }
+                    });
+                    
+                    atualizarAlertas();
+                    filtrarOS();
+                });
+        }
+
+        function carregarTecnicos() {
+            if (!empresaAtual) return;
+
+            db.collection('tecnicos')
+                .where('empresaId', '==', empresaAtual.id)
+                .where('ativo', '==', true)
+                .get().then(snapshot => {
+                    tecnicos = [];
+                    snapshot.forEach(doc => {
+                        tecnicos.push({ id: doc.id, ...doc.data() });
+                    });
+                });
+        }
+
+        function carregarClientes() {
+            if (!empresaAtual) return;
+
+            db.collection('clientes')
+                .where('empresaId', '==', empresaAtual.id)
+                .get().then(snapshot => {
+                    clientes = [];
+                    snapshot.forEach(doc => {
+                        clientes.push({ id: doc.id, ...doc.data() });
+                    });
+                });
+        }
+
+        function atualizarAlertas() {
+            const alertDiv = document.getElementById('novasOSAlert');
+            if (novasOS.length > 0) {
+                alertDiv.style.display = 'flex';
+                document.getElementById('novasOSCount').innerHTML = novasOS.length;
+            } else {
+                alertDiv.style.display = 'none';
+            }
+        }
+
+        // ============================================
+        // FILTROS E EXIBIÇÃO
+        // ============================================
+        function filtrarStatus(status, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            filtroAtivo = status;
+            filtrarOS();
+        }
+
+        function filtrarOS() {
+            const termo = document.getElementById('buscarOS')?.value.toLowerCase() || '';
+            
+            ordensFiltradas = ordensServico.filter(os => {
+                // Filtro por status
+                if (filtroAtivo !== 'todas' && os.status !== filtroAtivo) return false;
+                
+                // Filtro por busca
+                if (termo) {
+                    return (os.titulo?.toLowerCase().includes(termo) || 
+                           os.id?.toLowerCase().includes(termo) ||
+                           os.clienteNome?.toLowerCase().includes(termo));
+                }
+                
+                return true;
+            });
+
+            atualizarGrid();
+        }
+
+        function atualizarGrid() {
+            const container = document.getElementById('osContainer');
+            
+            if (!empresaAtual) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px;">👆 Selecione uma empresa</div>';
+                return;
+            }
+
+            if (ordensFiltradas.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-secondary);">📭 Nenhuma ordem de serviço encontrada</div>';
+                return;
+            }
+
+            let html = '<div class="os-grid">';
+            
+            ordensFiltradas.forEach(os => {
+                const statusInfo = AppServico.statusOS[os.status] || AppServico.statusOS['nova'];
+                const isNova = novasOS.some(n => n.id === os.id);
+                
+                html += `
+                    <div class="os-card ${isNova ? 'nova' : ''}" onclick="abrirOS('${os.id}')">
+                        <div class="os-header">
+                            <div>
+                                <div class="os-title">${os.titulo || 'Sem título'}</div>
+                                <div class="os-id">#${os.id.substring(0, 8)}</div>
+                            </div>
+                            <span class="os-status" style="background: ${statusInfo.cor}20; color: ${statusInfo.cor}; border: 1px solid ${statusInfo.cor}">
+                                ${statusInfo.label}
+                            </span>
+                        </div>
+                        
+                        <div class="os-info">
+                            <div class="info-row">
+                                <span class="info-label">Cliente:</span>
+                                <span class="info-value">${os.clienteNome || 'Não informado'}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Técnico:</span>
+                                <span class="info-value">${os.tecnicoNome || 'Não atribuído'}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Prioridade:</span>
+                                <span class="info-value">${AppServico.prioridades[os.prioridade]?.label || os.prioridade}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="os-footer">
+                            <span><i class="far fa-calendar"></i> ${AppServico.formatarData(os.criadoEm)}</span>
+                            <span><i class="fas fa-comment"></i> ${os.eventosCount || 0}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // ============================================
+        // FUNÇÕES DA OS
+        // ============================================
+        async function abrirOS(id) {
+            const os = ordensServico.find(o => o.id === id);
+            if (!os) return;
+
+            document.getElementById('osId').value = os.id;
+            document.getElementById('osEmpresaId').value = os.empresaId;
+            document.getElementById('osTitulo').value = os.titulo || '';
+            document.getElementById('osDescricao').value = os.descricao || '';
+            document.getElementById('osStatus').value = os.status || 'nova';
+            document.getElementById('osPrioridade').value = os.prioridade || 'media';
+            document.getElementById('osCliente').value = os.clienteNome || '';
+            document.getElementById('osAgendado').value = os.agendadoPara || '';
+            document.getElementById('osConcluido').value = os.concluidoEm ? AppServico.formatarData(os.concluidoEm) : '';
+            document.getElementById('osObservacao').value = os.observacaoTecnica || '';
+
+            // Carregar técnicos no select
+            const selectTecnico = document.getElementById('osTecnico');
+            selectTecnico.innerHTML = '<option value="">Selecione...</option>';
+            tecnicos.forEach(t => {
+                selectTecnico.innerHTML += `<option value="${t.id}" ${os.tecnicoId === t.id ? 'selected' : ''}>${t.nome}</option>`;
+            });
+
+            // Carregar anexos
+            carregarAnexos(os);
+            
+            // Carregar timeline
+            carregarTimeline(id);
+            
+            document.getElementById('modalOS').style.display = 'flex';
+        }
+
+        function fecharModalOS() {
+            document.getElementById('modalOS').style.display = 'none';
+        }
+
+        async function salvarStatus() {
+            const osId = document.getElementById('osId').value;
+            const novoStatus = document.getElementById('osStatus').value;
+            const statusAnterior = ordensServico.find(o => o.id === osId)?.status;
+            
+            if (statusAnterior === novoStatus) return;
+
+            try {
+                await db.collection('ordens_servico').doc(osId).update({
+                    status: novoStatus,
+                    atualizadoEm: new Date().toISOString()
+                });
+
+                // Adicionar evento
+                await AppServico.adicionarEvento(osId, {
+                    tipo: 'status',
+                    texto: `Status alterado de ${statusAnterior} para ${novoStatus}`,
+                    autorTipo: 'empresa'
+                });
+
+                AppServico.sucesso('Status atualizado!');
+            } catch (error) {
+                AppServico.erro('Erro: ' + error.message);
+            }
+        }
+
+        async function atribuirTecnico() {
+            const osId = document.getElementById('osId').value;
+            const tecnicoId = document.getElementById('osTecnico').value;
+            const tecnico = tecnicos.find(t => t.id === tecnicoId);
+            
+            try {
+                await db.collection('ordens_servico').doc(osId).update({
+                    tecnicoId: tecnicoId || null,
+                    tecnicoNome: tecnico?.nome || null,
+                    atualizadoEm: new Date().toISOString()
+                });
+
+                if (tecnico) {
+                    await AppServico.adicionarEvento(osId, {
+                        tipo: 'tecnico',
+                        texto: `Técnico atribuído: ${tecnico.nome}`,
+                        autorTipo: 'empresa'
+                    });
+                }
+
+                AppServico.sucesso('Técnico atribuído!');
+            } catch (error) {
+                AppServico.erro('Erro: ' + error.message);
+            }
+        }
+
+        async function agendarServico() {
+            const osId = document.getElementById('osId').value;
+            const agendado = document.getElementById('osAgendado').value;
+            
+            try {
+                await db.collection('ordens_servico').doc(osId).update({
+                    agendadoPara: agendado || null,
+                    atualizadoEm: new Date().toISOString()
+                });
+
+                if (agendado) {
+                    await AppServico.adicionarEvento(osId, {
+                        tipo: 'agendamento',
+                        texto: `Serviço agendado para ${AppServico.formatarData(agendado)}`,
+                        autorTipo: 'empresa'
+                    });
+                }
+
+                AppServico.sucesso('Agendamento salvo!');
+            } catch (error) {
+                AppServico.erro('Erro: ' + error.message);
+            }
+        }
+
+        async function salvarObservacao() {
+            const osId = document.getElementById('osId').value;
+            const observacao = document.getElementById('osObservacao').value;
+            
+            try {
+                await db.collection('ordens_servico').doc(osId).update({
+                    observacaoTecnica: observacao,
+                    atualizadoEm: new Date().toISOString()
+                });
+
+                await AppServico.adicionarEvento(osId, {
+                    tipo: 'observacao',
+                    texto: 'Observação técnica adicionada',
+                    autorTipo: 'empresa'
+                });
+
+                AppServico.sucesso('Observação salva!');
+            } catch (error) {
+                AppServico.erro('Erro: ' + error.message);
+            }
+        }
+
+        function carregarAnexos(os) {
+            const container = document.getElementById('anexosLista');
+            
+            if (!os.anexos || os.anexos.length === 0) {
+                container.innerHTML = '<div class="text-center w-100">Nenhum anexo</div>';
+                return;
+            }
+
+            let html = '';
+            os.anexos.forEach((anexo, i) => {
+                html += `
+                    <div class="attachment-item">
+                        <i class="fas fa-paperclip"></i>
+                        <a href="${anexo.url}" target="_blank" style="color: var(--accent);">Anexo ${i+1}</a>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        async function carregarTimeline(osId) {
+            const timeline = document.getElementById('timeline');
+            
+            const snapshot = await db.collection('ordens_servico').doc(osId).collection('eventos')
+                .orderBy('quando', 'desc')
+                .limit(20)
+                .get();
+
+            if (snapshot.empty) {
+                timeline.innerHTML = '<div style="text-align: center; color: var(--text-secondary);">Nenhum evento registrado</div>';
+                return;
+            }
+
+            let html = '';
+            snapshot.forEach(doc => {
+                const ev = doc.data();
+                html += `
+                    <div class="timeline-item">
+                        <div class="timeline-date">${AppServico.formatarData(ev.quando)}</div>
+                        <div>${ev.texto}</div>
+                        <div class="timeline-author">por: ${ev.autorNome || ev.autorTipo}</div>
+                    </div>
+                `;
+            });
+
+            timeline.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

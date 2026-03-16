@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📱 Minhas Solicitações - APP de Serviço</title>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    
+    <!-- Config Firebase -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4ecdc4">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --bg-primary: #f5f5f5;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --accent: #4ecdc4;
+            --secondary: #ff6b6b;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --success: #4CAF50;
+            --info: #2196f3;
+            --border: #e0e0e0;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        body {
+            background: var(--bg-primary);
+            min-height: 100vh;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--accent);
+        }
+
+        /* Mensagem de erro */
+        .error-container {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 40px 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .error-icon {
+            font-size: 64px;
+            color: var(--danger);
+            margin-bottom: 20px;
+        }
+
+        .error-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--danger);
+            margin-bottom: 10px;
+        }
+
+        .error-message {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .error-help {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .error-help h3 {
+            color: var(--accent);
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .error-help ul {
+            padding-left: 20px;
+            color: var(--text-secondary);
+        }
+
+        .error-help li {
+            margin-bottom: 5px;
+        }
+
+        /* Cliente Info (válido) */
+        .cliente-info {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .cliente-nome {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .cliente-email {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        /* Botões */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #45b7aa;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-outline:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        /* Cards de OS */
+        .os-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .os-card {
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--accent);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .os-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(78, 205, 196, 0.2);
+        }
+
+        .os-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .os-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .os-id {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .os-status {
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .os-info {
+            margin: 10px 0;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .os-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Formulário (protegido) */
+        .form-container {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            background: #f9f9f9;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* Upload de arquivos */
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent);
+            background: rgba(78, 205, 196, 0.05);
+        }
+
+        .upload-area i {
+            font-size: 24px;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        .file-list {
+            margin-top: 10px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+
+        .file-item .remove {
+            color: var(--danger);
+            cursor: pointer;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: var(--accent);
+            font-size: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        /* Timeline */
+        .timeline {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .timeline-item {
+            padding: 10px;
+            border-left: 2px solid var(--accent);
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .timeline-date {
+            color: var(--text-secondary);
+            font-size: 10px;
+            margin-bottom: 2px;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--accent);
+        }
+
+        .loading-spinner {
+            border: 3px solid rgba(78, 205, 196, 0.1);
+            border-top: 3px solid var(--accent);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .w-100 { width: 100%; }
+        .flex { display: flex; gap: 10px; }
+        .mt-20 { margin-top: 20px; }
+        .mb-10 { margin-bottom: 10px; }
+        .text-center { text-align: center; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER (sempre visível) -->
+        <div class="header">
+            <h1><i class="fas fa-clipboard-list"></i> MINHAS SOLICITAÇÕES</h1>
+        </div>
+
+        <!-- CONTEÚDO PROTEGIDO (só aparece após validação) -->
+        <div id="conteudoProtegido" style="display: none;">
+            <!-- Botão Nova OS (só aparece após validação) -->
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                <button class="btn btn-primary" onclick="mostrarNovaOS()">
+                    <i class="fas fa-plus"></i> Nova Solicitação
+                </button>
+            </div>
+
+            <!-- DADOS DO CLIENTE -->
+            <div class="cliente-info" id="clienteInfo">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    Carregando dados do cliente...
+                </div>
+            </div>
+
+            <!-- LISTA DE OS -->
+            <div id="osContainer">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    Carregando suas solicitações...
+                </div>
+            </div>
+        </div>
+
+        <!-- MENSAGEM DE ERRO (aparece quando validação falha) -->
+        <div id="erroContainer" class="error-container" style="display: none;">
+            <div class="error-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            <div class="error-title">Acesso Negado</div>
+            <div class="error-message" id="erroMensagem">
+                Acesso inválido ou expirado.
+            </div>
+            <div class="error-help">
+                <h3>🔒 Link de Acesso Protegido</h3>
+                <p>Para acessar suas solicitações, você precisa de um link válido com token de segurança.</p>
+                <p style="margin-top: 10px;">Solicite um novo link de acesso à empresa responsável.</p>
+                <p style="margin-top: 10px; font-size: 12px; color: #999;">
+                    Formato esperado: os_cliente.html?cliente=ID&token=TOKEN
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NOVA OS (protegido) -->
+    <div id="modalNovaOS" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-plus-circle"></i> Nova Solicitação</h2>
+                <button class="modal-close" onclick="fecharModalNovaOS()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Título *</label>
+                    <input type="text" id="novaTitulo" class="form-control" placeholder="Ex: Vazamento na pia da cozinha">
+                </div>
+                
+                <div class="form-group">
+                    <label>Descrição do Problema *</label>
+                    <textarea id="novaDescricao" class="form-control" rows="4" placeholder="Descreva o problema detalhadamente..."></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Prioridade</label>
+                        <select id="novaPrioridade" class="form-control">
+                            <option value="baixa">📉 Baixa</option>
+                            <option value="media" selected>📊 Média</option>
+                            <option value="alta">📈 Alta</option>
+                            <option value="urgente">⚠️ Urgente</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Categoria</label>
+                        <select id="novaCategoria" class="form-control">
+                            <option value="eletrica">⚡ Elétrica</option>
+                            <option value="hidraulica">💧 Hidráulica</option>
+                            <option value="pintura">🎨 Pintura</option>
+                            <option value="reparo">🛠️ Reparo</option>
+                            <option value="outros">📌 Outros</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Anexar Fotos</label>
+                    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Clique para selecionar ou arraste fotos</p>
+                        <small style="color: var(--text-secondary);">PNG, JPG até 5MB</small>
+                    </div>
+                    <input type="file" id="fileInput" multiple accept="image/*" style="display: none;" onchange="handleFiles(this.files)">
+                    <div id="fileList" class="file-list"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Melhor data/horário (opcional)</label>
+                    <input type="datetime-local" id="novaData" class="form-control">
+                </div>
+            </div>
+            <div class="modal-footer flex">
+                <button class="btn btn-primary w-100" onclick="criarOS()">ENVIAR SOLICITAÇÃO</button>
+                <button class="btn btn-outline w-100" onclick="fecharModalNovaOS()">CANCELAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DETALHES OS (protegido) -->
+    <div id="modalDetalhesOS" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-clipboard-list"></i> Detalhes da Solicitação</h2>
+                <button class="modal-close" onclick="fecharModalDetalhes()">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="detalheOSId">
+                
+                <div class="form-group">
+                    <label>Status</label>
+                    <div id="detalheStatus" style="padding: 8px; border-radius: 20px; display: inline-block; margin-top: 5px;"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Título</label>
+                    <div id="detalheTitulo" style="font-weight: bold; padding: 8px; background: #f9f9f9; border-radius: 5px;"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Descrição</label>
+                    <div id="detalheDescricao" style="padding: 8px; background: #f9f9f9; border-radius: 5px; min-height: 60px;"></div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Prioridade</label>
+                        <div id="detalhePrioridade" style="padding: 8px; background: #f9f9f9; border-radius: 5px;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Categoria</label>
+                        <div id="detalheCategoria" style="padding: 8px; background: #f9f9f9; border-radius: 5px;"></div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Solicitado em</label>
+                        <div id="detalheCriado" style="padding: 8px; background: #f9f9f9; border-radius: 5px;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Agendado para</label>
+                        <div id="detalheAgendado" style="padding: 8px; background: #f9f9f9; border-radius: 5px;"></div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Anexos</label>
+                    <div id="detalheAnexos" style="padding: 8px; background: #f9f9f9; border-radius: 5px;"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Histórico</label>
+                    <div id="detalheTimeline" class="timeline"></div>
+                </div>
+                
+                <div class="form-group" id="confirmacaoContainer" style="display: none;">
+                    <label>Confirmar Conclusão</label>
+                    <p style="color: var(--text-secondary); margin-bottom: 10px;">O serviço foi realizado conforme solicitado?</p>
+                    <div class="flex">
+                        <button class="btn btn-success w-100" onclick="confirmarConclusao()">✅ SIM, CONFIRMAR</button>
+                        <button class="btn btn-outline w-100" onclick="fecharModalDetalhes()">NÃO AGORA</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // VARIÁVEIS GLOBAIS
+        // ============================================
+        let clienteAtual = null;
+        let ordensServico = [];
+        let arquivosParaUpload = [];
+        let acessoValido = false;
+
+        // ============================================
+        // FUNÇÃO PRINCIPAL DE VALIDAÇÃO DE ACESSO
+        // ============================================
+        async function validarAcessoCliente() {
+            // Ler parâmetros da URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const clienteId = urlParams.get('cliente');
+            const token = urlParams.get('token');
+
+            // Se não tiver os dois parâmetros, já falha
+            if (!clienteId || !token) {
+                mostrarErro('Acesso inválido. Parâmetros cliente e token são obrigatórios.');
+                return null;
+            }
+
+            try {
+                // Buscar o documento do cliente
+                const doc = await db.collection('clientes').doc(clienteId).get();
+                
+                if (!doc.exists) {
+                    mostrarErro('Cliente não encontrado.');
+                    return null;
+                }
+
+                const cliente = { id: doc.id, ...doc.data() };
+
+                // Verificar se o cliente está ativo
+                if (!cliente.ativo) {
+                    mostrarErro('Cliente inativo. Entre em contato com a empresa.');
+                    return null;
+                }
+
+                // Verificar se o token corresponde
+                if (cliente.acessoToken !== token) {
+                    mostrarErro('Token de acesso inválido.');
+                    return null;
+                }
+
+                // Acesso válido!
+                acessoValido = true;
+                return cliente;
+
+            } catch (error) {
+                console.error('Erro na validação de acesso:', error);
+                mostrarErro('Erro ao validar acesso. Tente novamente mais tarde.');
+                return null;
+            }
+        }
+
+        // ============================================
+        // FUNÇÃO PARA MOSTRAR ERRO
+        // ============================================
+        function mostrarErro(mensagem) {
+            // Esconder conteúdo protegido
+            document.getElementById('conteudoProtegido').style.display = 'none';
+            
+            // Mostrar mensagem de erro
+            const erroContainer = document.getElementById('erroContainer');
+            const erroMensagem = document.getElementById('erroMensagem');
+            erroMensagem.innerHTML = mensagem;
+            erroContainer.style.display = 'block';
+        }
+
+        // ============================================
+        // INICIALIZAÇÃO COM VALIDAÇÃO
+        // ============================================
+        window.onload = async function() {
+            // Registrar Service Worker para PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(reg => console.log('Service Worker registrado'))
+                    .catch(err => console.log('Erro no Service Worker:', err));
+            }
+
+            // Validar acesso do cliente
+            const cliente = await validarAcessoCliente();
+            
+            if (cliente) {
+                // Acesso válido - carregar tudo
+                clienteAtual = cliente;
+                document.getElementById('conteudoProtegido').style.display = 'block';
+                document.getElementById('erroContainer').style.display = 'none';
+                
+                // Carregar dados
+                carregarDadosCliente();
+                carregarOS();
+            }
+        };
+
+        // ============================================
+        // FUNÇÕES PROTEGIDAS (só executam se acesso válido)
+        // ============================================
+        function carregarDadosCliente() {
+            if (!clienteAtual) return;
+
+            document.getElementById('clienteInfo').innerHTML = `
+                <div class="cliente-nome">👤 ${clienteAtual.nome || 'Cliente'}</div>
+                <div class="cliente-email">${clienteAtual.email || ''}</div>
+            `;
+        }
+
+        // ============================================
+        // CARREGAR ORDENS DE SERVIÇO (protegido)
+        // ============================================
+        function carregarOS() {
+            if (!clienteAtual) return;
+
+            db.collection('ordens_servico')
+                .where('clienteId', '==', clienteAtual.id)
+                .orderBy('criadoEm', 'desc')
+                .onSnapshot(snapshot => {
+                    ordensServico = [];
+                    snapshot.forEach(doc => {
+                        ordensServico.push({ id: doc.id, ...doc.data() });
+                    });
+                    atualizarListaOS();
+                });
+        }
+
+        function atualizarListaOS() {
+            const container = document.getElementById('osContainer');
+
+            if (ordensServico.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                        📭 Nenhuma solicitação encontrada.<br>
+                        <button class="btn btn-primary btn-sm mt-20" onclick="mostrarNovaOS()">
+                            <i class="fas fa-plus"></i> Criar primeira solicitação
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div class="os-grid">';
+            
+            ordensServico.forEach(os => {
+                const statusInfo = AppServico.statusOS[os.status] || AppServico.statusOS['nova'];
+                
+                html += `
+                    <div class="os-card" onclick="abrirDetalhesOS('${os.id}')">
+                        <div class="os-header">
+                            <div>
+                                <div class="os-title">${os.titulo || 'Sem título'}</div>
+                                <div class="os-id">#${os.id.substring(0, 8)}</div>
+                            </div>
+                            <span class="os-status" style="background: ${statusInfo.cor}20; color: ${statusInfo.cor}; border: 1px solid ${statusInfo.cor}">
+                                ${statusInfo.label}
+                            </span>
+                        </div>
+                        
+                        <div class="os-info">
+                            ${os.descricao ? os.descricao.substring(0, 100) + '...' : 'Sem descrição'}
+                        </div>
+                        
+                        <div class="os-footer">
+                            <span><i class="far fa-calendar"></i> ${AppServico.formatarData(os.criadoEm)}</span>
+                            <span><i class="fas fa-tag"></i> ${AppServico.prioridades[os.prioridade]?.label || os.prioridade}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // ============================================
+        // NOVA SOLICITAÇÃO (protegido)
+        // ============================================
+        function mostrarNovaOS() {
+            if (!clienteAtual) {
+                AppServico.erro('Acesso inválido');
+                return;
+            }
+            
+            arquivosParaUpload = [];
+            document.getElementById('fileList').innerHTML = '';
+            document.getElementById('modalNovaOS').style.display = 'flex';
+        }
+
+        function fecharModalNovaOS() {
+            document.getElementById('modalNovaOS').style.display = 'none';
+            // Limpar formulário
+            document.getElementById('novaTitulo').value = '';
+            document.getElementById('novaDescricao').value = '';
+            document.getElementById('novaPrioridade').value = 'media';
+            document.getElementById('novaCategoria').value = 'reparo';
+            document.getElementById('novaData').value = '';
+            document.getElementById('fileList').innerHTML = '';
+            arquivosParaUpload = [];
+        }
+
+        function handleFiles(files) {
+            const fileList = document.getElementById('fileList');
+            
+            for (let file of files) {
+                if (file.size > 5 * 1024 * 1024) {
+                    AppServico.erro(`Arquivo ${file.name} muito grande (máx 5MB)`);
+                    continue;
+                }
+                
+                arquivosParaUpload.push(file);
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    fileList.innerHTML += `
+                        <div class="file-item">
+                            <span><i class="fas fa-image"></i> ${file.name}</span>
+                            <span class="remove" onclick="removerArquivo('${file.name}')">×</span>
+                        </div>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removerArquivo(fileName) {
+            arquivosParaUpload = arquivosParaUpload.filter(f => f.name !== fileName);
+            document.getElementById('fileList').innerHTML = arquivosParaUpload.map(f => 
+                `<div class="file-item"><span><i class="fas fa-image"></i> ${f.name}</span></div>`
+            ).join('');
+        }
+
+        async function criarOS() {
+            if (!clienteAtual) {
+                AppServico.erro('Acesso inválido');
+                return;
+            }
+
+            const titulo = document.getElementById('novaTitulo').value.trim();
+            const descricao = document.getElementById('novaDescricao').value.trim();
+
+            if (!titulo) return AppServico.erro('Título é obrigatório');
+            if (!descricao) return AppServico.erro('Descrição é obrigatória');
+
+            try {
+                // Fazer upload dos arquivos primeiro
+                const anexos = [];
+                for (let file of arquivosParaUpload) {
+                    const path = `empresas/${clienteAtual.empresaId}/clientes/${clienteAtual.id}/os/${Date.now()}_${file.name}`;
+                    const url = await AppServico.uploadArquivo(file, path);
+                    anexos.push({
+                        nome: file.name,
+                        url: url,
+                        tipo: file.type,
+                        data: new Date().toISOString()
+                    });
+                }
+
+                // Criar a OS
+                const osRef = await db.collection('ordens_servico').add({
+                    empresaId: clienteAtual.empresaId,
+                    clienteId: clienteAtual.id,
+                    clienteNome: clienteAtual.nome,
+                    titulo: titulo,
+                    descricao: descricao,
+                    prioridade: document.getElementById('novaPrioridade').value,
+                    categoria: document.getElementById('novaCategoria').value,
+                    anexos: anexos,
+                    agendadoPara: document.getElementById('novaData').value || null,
+                    status: 'nova',
+                    criadoEm: new Date().toISOString(),
+                    atualizadoEm: new Date().toISOString(),
+                    eventosCount: 0
+                });
+
+                // Adicionar primeiro evento
+                await AppServico.adicionarEvento(osRef.id, {
+                    tipo: 'criacao',
+                    texto: 'Solicitação criada pelo cliente',
+                    autorTipo: 'cliente',
+                    autorId: clienteAtual.id,
+                    autorNome: clienteAtual.nome
+                });
+
+                AppServico.sucesso('Solicitação enviada com sucesso!');
+                fecharModalNovaOS();
+            } catch (error) {
+                AppServico.erro('Erro ao criar solicitação: ' + error.message);
+            }
+        }
+
+        // ============================================
+        // DETALHES DA OS (protegido)
+        // ============================================
+        async function abrirDetalhesOS(id) {
+            if (!clienteAtual) {
+                AppServico.erro('Acesso inválido');
+                return;
+            }
+
+            const os = ordensServico.find(o => o.id === id);
+            if (!os) return;
+
+            document.getElementById('detalheOSId').value = os.id;
+            document.getElementById('detalheTitulo').innerHTML = os.titulo || 'Sem título';
+            document.getElementById('detalheDescricao').innerHTML = os.descricao || 'Sem descrição';
+            
+            const prioridadeInfo = AppServico.prioridades[os.prioridade] || { label: os.prioridade };
+            document.getElementById('detalhePrioridade').innerHTML = prioridadeInfo.label;
+            document.getElementById('detalheCategoria').innerHTML = os.categoria || 'outros';
+            document.getElementById('detalheCriado').innerHTML = AppServico.formatarData(os.criadoEm);
+            document.getElementById('detalheAgendado').innerHTML = os.agendadoPara ? AppServico.formatarData(os.agendadoPara) : 'Aguardando agendamento';
+            
+            // Status
+            const statusInfo = AppServico.statusOS[os.status] || AppServico.statusOS['nova'];
+            const statusElement = document.getElementById('detalheStatus');
+            statusElement.innerHTML = statusInfo.label;
+            statusElement.style.background = `${statusInfo.cor}20`;
+            statusElement.style.color = statusInfo.cor;
+            statusElement.style.border = `1px solid ${statusInfo.cor}`;
+
+            // Anexos
+            const anexosElement = document.getElementById('detalheAnexos');
+            if (os.anexos && os.anexos.length > 0) {
+                anexosElement.innerHTML = os.anexos.map(a => 
+                    `<div><i class="fas fa-paperclip"></i> <a href="${a.url}" target="_blank" style="color: var(--accent);">${a.nome}</a></div>`
+                ).join('');
+            } else {
+                anexosElement.innerHTML = 'Nenhum anexo';
+            }
+
+            // Mostrar botão de confirmação se necessário
+            const confirmContainer = document.getElementById('confirmacaoContainer');
+            if (os.status === 'aguardando_confirmacao') {
+                confirmContainer.style.display = 'block';
+            } else {
+                confirmContainer.style.display = 'none';
+            }
+
+            // Carregar timeline
+            await carregarTimelineDetalhes(id);
+
+            document.getElementById('modalDetalhesOS').style.display = 'flex';
+        }
+
+        function fecharModalDetalhes() {
+            document.getElementById('modalDetalhesOS').style.display = 'none';
+        }
+
+        async function carregarTimelineDetalhes(osId) {
+            const timeline = document.getElementById('detalheTimeline');
+            
+            const snapshot = await db.collection('ordens_servico').doc(osId).collection('eventos')
+                .orderBy('quando', 'desc')
+                .limit(20)
+                .get();
+
+            if (snapshot.empty) {
+                timeline.innerHTML = '<div style="text-align: center; color: var(--text-secondary);">Nenhum evento registrado</div>';
+                return;
+            }
+
+            let html = '';
+            snapshot.forEach(doc => {
+                const ev = doc.data();
+                html += `
+                    <div class="timeline-item">
+                        <div class="timeline-date">${AppServico.formatarData(ev.quando)}</div>
+                        <div>${ev.texto}</div>
+                        <div style="font-size: 10px; color: var(--text-secondary);">por: ${ev.autorNome || ev.autorTipo}</div>
+                    </div>
+                `;
+            });
+
+            timeline.innerHTML = html;
+        }
+
+        async function confirmarConclusao() {
+            if (!clienteAtual) {
+                AppServico.erro('Acesso inválido');
+                return;
+            }
+
+            const osId = document.getElementById('detalheOSId').value;
+            if (!osId) return;
+
+            try {
+                await db.collection('ordens_servico').doc(osId).update({
+                    status: 'concluida',
+                    concluidoEm: new Date().toISOString(),
+                    confirmacaoCliente: true,
+                    atualizadoEm: new Date().toISOString()
+                });
+
+                await AppServico.adicionarEvento(osId, {
+                    tipo: 'conclusao',
+                    texto: 'Cliente confirmou a conclusão do serviço',
+                    autorTipo: 'cliente',
+                    autorId: clienteAtual.id,
+                    autorNome: clienteAtual.nome
+                });
+
+                AppServico.sucesso('Obrigado pela confirmação!');
+                fecharModalDetalhes();
+            } catch (error) {
+                AppServico.erro('Erro ao confirmar: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
